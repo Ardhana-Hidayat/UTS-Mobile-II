@@ -23,19 +23,35 @@ import androidx.lifecycle.ViewModel
 import com.example.unscramble.data.MAX_NO_OF_WORDS
 import com.example.unscramble.data.SCORE_INCREASE
 import com.example.unscramble.data.allWords
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.lifecycle.viewModelScope
+import com.example.unscramble.AnswerInstance
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * ViewModel containing the app data and methods to process the data
  */
-class GameViewModel : ViewModel() {
+class GameViewModel(private val answerDao: AnswerDao) : ViewModel() {
 
     // Game UI state
     private val _uiState = MutableStateFlow(GameUiState())
     val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()
+
+    // History UI state
+    val historyUiState: StateFlow<List<Answer>> =
+        answerDao.getAll().stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Lazily,
+            initialValue = emptyList()
+        )
 
     var userGuess by mutableStateOf("")
         private set
@@ -74,9 +90,10 @@ class GameViewModel : ViewModel() {
             val updatedScore = _uiState.value.score.plus(SCORE_INCREASE)
             updateGameState(updatedScore)
 
-            val newAnswer = Answer(answer = userGuess)
-            val ansDatabase = AnswerDatabase.getDatabase(this)
-            ansDatabase.answerDao().insert(newAnswer)
+            viewModelScope.launch {
+                val newAnswer = Answer(answer = userGuess)
+                answerDao.insertItem(newAnswer)
+            }
 
         } else {
             // User's guess is wrong, show an error
@@ -142,6 +159,15 @@ class GameViewModel : ViewModel() {
         } else {
             usedWords.add(currentWord)
             shuffleCurrentWord(currentWord)
+        }
+    }
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val application = (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as AnswerInstance)
+                GameViewModel(application.AnswerInstance.answerDao())
+            }
         }
     }
 }

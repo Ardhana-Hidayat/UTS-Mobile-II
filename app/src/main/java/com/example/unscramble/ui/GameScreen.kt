@@ -59,14 +59,12 @@ import com.example.unscramble.R
 import com.example.unscramble.ui.theme.UnscrambleTheme
 
 @Composable
-fun GameScreen(gameViewModel: GameViewModel = viewModel()) {
+fun GameScreen(
+    onShowHistory: () -> Unit,
+    gameViewModel: GameViewModel = viewModel(factory = GameViewModel.Factory)
+) {
     val gameUiState by gameViewModel.uiState.collectAsState()
     val mediumPadding = dimensionResource(R.dimen.padding_medium)
-
-    val answerDatabase = AnswerDatabase.getDatabase(this)
-
-    val newAnswer = Answer(answer = "Test")
-    answerDatabase.answerDao().insert(newAnswer)
 
     Column(
         modifier = Modifier
@@ -118,6 +116,16 @@ fun GameScreen(gameViewModel: GameViewModel = viewModel()) {
             ) {
                 Text(
                     text = stringResource(R.string.skip),
+                    fontSize = 16.sp
+                )
+            }
+
+            TextButton(
+                onClick = onShowHistory,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "Show History",
                     fontSize = 16.sp
                 )
             }
@@ -259,6 +267,6 @@ private fun FinalScoreDialog(
 @Composable
 fun GameScreenPreview() {
     UnscrambleTheme {
-        GameScreen()
+        GameScreen(onShowHistory = {})
     }
 }

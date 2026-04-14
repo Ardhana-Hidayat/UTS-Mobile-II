@@ -18,6 +18,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("com.google.devtools.ksp") version "2.1.0-1.0.29"
 }
 
 android {
@@ -67,6 +68,9 @@ dependencies {
     val room_version = "2.7.0"
 
     implementation("androidx.room:room-runtime:${room_version}")
+    add("ksp", "androidx.room:room-compiler:${room_version}")
+    implementation("androidx.room:room-ktx:${room_version}")
+
     implementation("com.squareup.retrofit2:retrofit:3.0.0")
     implementation("com.squareup.retrofit2:converter-gson:3.0.0")
     implementation(platform("androidx.compose:compose-bom:2024.12.01"))

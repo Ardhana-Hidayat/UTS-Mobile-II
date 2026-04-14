@@ -23,6 +23,11 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.example.unscramble.ui.GameHistory
 import com.example.unscramble.ui.GameScreen
 import com.example.unscramble.ui.theme.UnscrambleTheme
 
@@ -35,7 +40,13 @@ class MainActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    GameScreen()
+                    var showHistory by remember { mutableStateOf(false) }
+
+                    if (showHistory) {
+                        GameHistory(onBack = { showHistory = false })
+                    } else {
+                        GameScreen(onShowHistory = { showHistory = true })
+                    }
                 }
             }
         }
